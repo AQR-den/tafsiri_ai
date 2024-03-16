@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+
+  db:
+    image: postgres
+    volumes:
+      - ./backend_django/data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      
+  backend_django:
+    container_name: backend_django
+    build: 
+      context: ./backend_django
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - '8000:8000'
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+      
+  backend_flask:
+    container_name: backend_flask
+    build:
+      context: ./backend_flask
+    ports:
+      - '5000:5000'
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - './frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - '4000:3000'
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+
